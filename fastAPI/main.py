@@ -1,18 +1,25 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from models import Product
+from database import session
+import database_model
+from sqlalchemy.orm import Session
+
 app = FastAPI()
 
 @app.get('/')
 def greeting():
     return "Good morning"
 
-products = [
-    Product(id=1, name="Laptop", desc="Best Machine", price=350000, quantity=1),
-    Product(id=2, name="Book", desc="Best non machine", price=700, quantity=1)
-]
+def get_db():
+    db = session()
+    try:
+        yield db
+    finally:
+        db.close()
 
 @app.get('/list')
-def list_products():
+def list_products(db:Session=Depends(get_db)):
+    products = db.query(database_model.product).all()
     return products
 
 @app.get('/get_by_id/{id}')
@@ -37,3 +44,9 @@ def delete(id:int):
             products.pop(i)
             return "deleted successfully"
     return "Please enter valid ID"
+
+@app.post('/add')
+def add(product:Product, db:Session=Depends(get_db)):
+    db.add(database_model.Product(**product.model_dump()))
+    db.commit()
+    return "Product added successfully"
