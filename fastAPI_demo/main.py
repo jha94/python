@@ -7,11 +7,6 @@ from sqlalchemy.orm import Session
 app = FastAPI()
 db_models.Base.metadata.create_all(bind=engine)
 
-products = [
-    Product(id=1, name='Laptop', desc='Life partner', price=-200000),
-    Product(id=2, name='Earbuds', desc='Life partner', price=30000),
-]
-
 def get_db():
     db = session()
     try:
@@ -19,21 +14,8 @@ def get_db():
     finally:
         db.close()
 
-def init_db():
-    db = session()
-    count = db.query(db_models.Product).count
-    if count==0:
-        for product in products:
-        # model_dump() will give dictionary, ** will give key value pair
-            db.add(db_models.Product(**product.model_dump()))
-    db.commit()
-
-init_db()
-
 @app.get('/')
 def main():
-    # db = session()
-    # db.query()
     return 'Say Hello to FastAPI demo'
 
 @app.get('/products')
