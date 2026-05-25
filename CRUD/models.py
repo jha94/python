@@ -3,4 +3,4 @@ class Prod(BaseModel):
     id:int
     name:str
     desc:str
-    price:float
+    float:float
