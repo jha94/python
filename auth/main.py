@@ -1,9 +1,9 @@
 from fastapi import FastAPI, Depends
-from db_models import Base, DB_USER
+from db_models import Base, db_user
 from db import engine, session
 from models import User
 from sqlalchemy.orm import Session
-from utils import hash_password, encode_access_token
+from utils import get_hashed_password, encode_password, get_current_user
 
 app = FastAPI()
 Base.metadata.create_all(bind=engine)
@@ -20,22 +20,21 @@ def start():
     return 'Server started'
 
 @app.post('/sign_up')
-def sign_up(user:User, db:Session=Depends(get_db)):
-    user = DB_USER(
+def sign_up(user:User, db:Session = Depends(get_db)):
+    hashedUser =db_user(
         email=user.email,
-        password= hash_password(user.password)
+        password=get_hashed_password(user.password)
     )
-    db.add(user)
+    db.add(hashedUser)
     db.commit()
-    return 'user added'
+    token_data = {"sub": user.email} 
+    token = encode_password(token_data)
+    
+    return {
+        "access_token": token, 
+        "token_type": "bearer"
+    }
 
-@app.post('/log_in')
-def log_in(user:User, db:Session=Depends(get_db)):
-    found_user = db.query(DB_USER).filter(DB_USER.email==user.email).first()
-    if not found_user:
-        return 'User is not registered'
-    user_data = encode_access_token({
-        'email':user.email,
-        'password':user.password
-    })
-    return user_data
+@app.post('/protected-route')
+def secure_data(current_user: db_user = Depends(get_current_user)):
+    return {"message": f"Hello {current_user.email}, your account is active!"}
