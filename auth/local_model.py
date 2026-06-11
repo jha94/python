@@ -1,4 +1,5 @@
 from pydantic import BaseModel
-class User(BaseModel):
+
+class Local_User(BaseModel):
     email:str
     password:str

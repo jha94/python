@@ -3,7 +3,7 @@ from sqlalchemy import Column, String
 
 Base = declarative_base()
 
-class db_user(Base):
+class DB_User(Base):
     __tablename__ = 'user'
     email=Column(String, primary_key=True)
     password=Column(String)
